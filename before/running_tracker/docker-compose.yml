@@ -1,0 +1,49 @@
+version: '3.4'
+
+services:
+  runtrackr-api:
+    image: ${DOCKER_REGISTRY-}webapi
+    container_name: runtrackr.api
+    build:
+      context: .
+      dockerfile: src/Web.Api/Dockerfile
+    ports:
+      - 5000:5000
+      - 5001:5001
+
+  runtrackr-database:
+    image: postgres:latest
+    container_name: runtrackr.database
+    environment:
+      - POSTGRES_DB=runtrackr
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    volumes:
+      - ./.containers/db:/var/lib/postgresql/data
+    ports:
+      - 5432:5432
+
+  runtrackr-seq:
+    image: datalust/seq:latest
+    container_name: runtrackr.seq
+    environment:
+      - ACCEPT_EULA=Y
+    ports:
+      - 5341:5341
+      - 8081:80
+
+  runtrackr-redis:
+    image: redis:latest
+    container_name: runtrackr.redis
+    restart: always
+    ports:
+      - '6379:6379'
+
+  runtrackr-blob-storage:
+    image: mcr.microsoft.com/azure-storage/azurite:latest
+    container_name: runtrackr.blob-storage
+    volumes:
+      - ./.containers/blob_storage/data:/data
+    ports:
+      - "10000:10000"
+    command: "azurite-blob --blobHost 0.0.0.0 -l /data"
